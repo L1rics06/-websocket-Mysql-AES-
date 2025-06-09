@@ -1,0 +1,74 @@
+.Zshell{
+	width: 100px;
+	height: 100vh;/*高度设置为视口高度*/
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	flex-direction: column;
+	background-color: rgb(17,24,39);
+	border-radius: 10px 0 0 10px;
+	transition: 0.3s;
+	overflow: hidden;
+	position: fixed;/*固定在页面左侧*/
+	top: 0;
+	left: 0;
+	z-index: 1000;/*确保在其他元素之上*/
+	padding-top: 2rem;
+}
+
+.Zshell-box{
+	display: flex;
+	align-items: center;
+	height: 60px;
+	width: 85%;
+	margin: 9px 0;
+	border-radius: 5px;
+	position: relative;
+	transition: 0.3s;
+	color: rgb(160,160,175);
+}
+
+.Zshell-box:nth-child(1)::before,
+.Zshell-box:nth-child(3)::before{
+	content: '';
+	display: block;
+	width: 100%;
+	height: 2px;
+	background-color: rgb(55,65,81);
+	position: absolute;
+	bottom: -10px;
+}
+
+.Zshell-pic{
+	width: 28px;
+	height: 28px;
+	margin-left: 12px;
+	margin-right: 20px;
+	flex-shrink: 0;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.Zshell-box span{
+	position: relative;
+	font: 500 18px 'Arial',sans-serif;
+	opacity: 0;
+	transition: 0.2s ease;
+	white-space: nowrap;
+	line-height: 1;/*消除字体多余高度*/
+	vertical-align: middle;/*与图标齐平*/
+	display: inline-block;
+}
+
+.Zshell:hover{
+	width: 270px;
+}
+
+.Zshell-box:hover{
+	background-color: rgb(55,65,81);
+	color: #fff;
+}
+
+.Zshell:hover span{
+	opacity: 1;
+}

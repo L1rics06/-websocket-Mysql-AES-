@@ -1,0 +1,145 @@
+/* CSS Document */
+*{
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html{
+	font-size: 10px;
+}
+
+/*设置一个背景图层*/
+html::before{
+	content: "";
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	z-index: -1;
+	background: linear-gradient(45deg, #93a5cf 0%, #e4efe9 100%);
+}
+
+::selection{
+	color: #fff;
+	background-color: #A1C6C6;
+}
+
+.loginbox{
+	display: flex;
+	overflow: hidden;
+	width:90rem;
+	height: 55rem;	/*设置loginbox大小为html字体大小的倍数*/
+	background-color: rgba(250,250,250,50%);
+	border-radius: 1.5rem;
+	margin:10% auto;
+	box-shadow: 2px 4px 6px 0px rgba(0, 0, 0, 0.2);
+}
+
+.loginbox .left{
+	position: relative;
+	width: 35%;
+	height: 100%;
+}
+
+.loginbox .left::before{
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-image: url("../images/boxleft.jpg");
+	background-size: cover;
+}
+
+.loginbox .right{
+	display: flex;
+	width: 65%;
+	flex-direction: column;/*设置容器主轴方向为纵向，子元素会从上到下排列*/
+	align-items: center;
+}
+
+.loginbox .right h {
+	color:#A1C6C6;
+	font-size: 3rem;
+	margin-top: 5rem;
+}
+
+.loginbox .right .logindiv{
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.loginbox .right .logindiv .input{
+	outline: none;
+	width: 85%;
+	height: 5rem;
+	font-size: 1.6rem;
+	margin-top: 5rem;
+	padding: 1rem 0 0 1.6rem;
+	border: none;
+	border-bottom: 1px solid #A1C6C6;
+	color: #A1C6C6;
+	background-color:rgba(0,0,0,0.00);
+}
+
+.right .logindiv .input:focus{
+	outline: none;
+	color: #A1C6C6;
+	padding: 1rem 0 0 1.6rem;
+}
+
+.right .login{
+	width:50%;
+	height: 5rem;
+	background-color:#A3D2D2;
+	border: none;
+	border-radius: 0.8rem;
+	margin: 6rem 0 0 50%;
+	transform: translateX(-50%);/*使居中对齐*/
+	text-align: center;
+	position: relative;
+    display: flex;
+  	align-items: center;     /* 垂直居中 */
+  	justify-content: center; /* 水平居中 */
+  	overflow: hidden;        /* 防止内容溢出 */
+  	cursor: pointer;
+}
+
+/* 保留你的原有样式 */
+
+.login button {
+  	width: 100%;
+	height: 100%;
+  	background-color: #A3D2D2;
+  	color: #efefef;
+  	border: none;
+  	border-radius: 8px;
+  	font-size: 1.4rem;
+}
+
+.right .login:hover{
+	box-shadow: 0 0 2rem -0.5rem rgb(0 0 0/ 15%);
+}
+
+.right .regist{
+	margin-top: 3rem;
+	width: 70%;
+	text-align: center;
+}
+
+.right .regist p{
+	font-size: 1rem;
+	color: #A1C6C6;
+}
+
+.right .regist a{
+	font-size: 1rem;
+	margin-left: 0.5rem;
+	margin-right: 0.5rem;
+	color: #666;
+	text-decoration: none;
+}
+
+.right .regist a:hover{
+	color:#A1C6C6; 
+}

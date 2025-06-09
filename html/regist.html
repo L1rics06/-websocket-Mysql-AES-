@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>注册界面</title>
+	<link href="../css/registstyle.css" rel="stylesheet">
+</head>
+
+<body>
+	<div class="registbox">
+		<div class="left"></div>
+		<div class="right">
+			<h>注 册</h>
+			<form id="registForm" enctype="multipart/form-data">
+  				<input id="username" class="input" type="text" placeholder="用户名" required>
+  				<input id="password" class="input" type="password" placeholder="密码" required>
+				<input id="email" class="input" type="email" placeholder="邮箱" required>
+				<input id="signature" class="input" type="text" placeholder="个性签名">
+				
+				<!-- 头像上传 -->
+            	<div class="avatar-upload">
+                	<label>选择头像:</label>
+					<div class="avatar-selection" id="avatarSelection">
+						<img src="../images/avatar1.png" class="avatar-option selected" data-path="../images/avatar1.png">
+						<img src="../images/avatar2.png" class="avatar-option" data-path="../images/avatar2.png">
+						<img src="../images/avatar3.jpg" class="avatar-option" data-path="../images/avatar3.jpg">
+						<img src="../images/avatar4.jpg" class="avatar-option" data-path="../images/avatar4.jpg">
+						<img src="../images/avatar5.jpg" class="avatar-option" data-path="../images/avatar5.jpg">
+						<img src="../images/avatar6.jpg" class="avatar-option" data-path="../images/avatar6.jpg">
+						<img src="../images/avatar7.jpg" class="avatar-option" data-path="../images/avatar7.jpg">
+					</div>
+					<img id="avatarPreview" src="../images/avatar1.png" alt="头像预览" style="display:block; width:80px; height:80px; border-radius:50%; margin-top:10px;">
+				</div>
+				
+				<button type="submit" class="regist-btn">注册</button>
+			</form>
+			
+			<div class="loginback">
+				<p>已有账号？点<a href="">此处</a>返回登录</p>
+			</div>
+		</div>	
+	</div>
+
+	<script>
+		// WebSocket连接
+		const socket = new WebSocket("ws://localhost:8887");
+
+		// 监听连接打开
+		socket.onopen = () => {
+			console.log("WebSocket连接成功");
+		};
+
+		// 监听接收消息
+		socket.onmessage = (event) => {
+			const data = JSON.parse(event.data);
+
+			if (data.category === "register") {
+				if (data.success==="true") {
+						alert("注册成功，请登录！");
+						window.location.href = "main.html";
+					} else {
+						alert("注册失败：" + (result.message || "未知错误"));
+					}
+
+			}
+		};
+
+		// 头像选择事件
+		const avatarOptions = document.querySelectorAll('.avatar-option');
+		let selectedAvatarPath = "../images/avatar1.png"; // 默认
+
+		avatarOptions.forEach(option => {
+			option.addEventListener('click', () => {
+				avatarOptions.forEach(o => o.classList.remove('selected'));
+				option.classList.add('selected');
+				selectedAvatarPath = option.dataset.path;
+				document.getElementById('avatarPreview').src = selectedAvatarPath;
+			});
+		});
+
+		// 提交注册
+		document.getElementById('registForm').addEventListener('submit',async function(e) {
+			e.preventDefault();
+			const username = document.getElementById('username').value.trim();
+			const password = document.getElementById('password').value.trim();
+			const email = document.getElementById('email').value.trim();
+			const signature = document.getElementById('signature').value.trim();
+
+			if (!username || !password || !email) {
+				alert("请完整填写注册信息！");
+				return;
+			}
+
+			const sendData = {
+				category: "register",
+				userId: username,
+				password: password,
+				email: email,
+				signature: signature,
+				avatar: selectedAvatarPath // 选中头像的相对路径
+			};
+
+			socket.send(JSON.stringify(sendData));
+		});
+	</script>
+
+</body>
+</html>

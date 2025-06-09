@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天室</title>
+    <link href="../css/loginstyle.css" rel="stylesheet">
+    <link href="../css/ZNavbar.css" rel="stylesheet">
+    <link href="../css/indexstyle.css" rel="stylesheet">
+    <link href="../css/introducestyle.css" rel="stylesheet">
+    <link href="../css/chatstyle.css" rel="stylesheet">
+</head>
+<body>
+    <div id="loginPage">
+        <div class="loginbox">
+            <div class="left"></div>
+            <div class="right">
+                <h>登 录</h>
+                <div class="logindiv">
+                    <input class="input" id="username" placeholder="用户名" type="text">
+                    <input class="input" id="password" placeholder="密码" type="password">
+                </div>
+                <div class="login">
+                    <button id="loginButton">Login</button>
+                </div>
+                <div class="regist">
+                    <p>还没有账号？点<a href="regist.html">此处</a>进行注册</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainPage" style="display: none">
+        <div class="Zshell">
+            <a class="Zshell-box" href="#" onclick="showPage('index')"><img class="Zshell-pic" src="../images/主页.png"><span>主页</span></a>
+            <a class="Zshell-box" href="#" onclick="showPage('introduce')"><img class="Zshell-pic" src="../images/个人.png"><span>个人简介</span></a>
+            <a class="Zshell-box" href="#" onclick="showPage('chat')"><img class="Zshell-pic" src="../images/聊天室.png"><span>聊天室</span></a>
+            <a class="Zshell-box" href="#" onclick="logout()"><img class="Zshell-pic" src="../images/登录.png"><span>登出</span></a>
+        </div>
+
+        <div id="index" style="display: none">
+            <div class="video-section">
+                <video autoplay class="background-video" loop muted>
+                    <source src="../video/index-video.mp4" type="video/mp4">
+                    抱歉，您的浏览器不支持视频播放。
+                </video>
+
+                <div class="video-text">
+                    <p>Hello! Welcome to the chat room</p>
+                    <p>You can go to other pages through the left navigation bar.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="introduce" style="display: none">
+            <div class="main-area">
+                <div class="profile-card">
+                    <img alt="头像" class="avatar" id="avatarImg" src="../images/avatar1.png">
+                    <div class="info">
+                        <p><strong>用户名：</strong><span id="user">加载中...</span></p>
+                        <p><strong>邮箱：</strong><span id="email">加载中...</span></p>
+                        <p><strong>个性签名：</strong><span id="signature">加载中...</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="chat" style="display: none">
+            <div class="right-area">
+                <div class="chatbox">
+                    <!-- 在线用户列表 -->
+                    <div class="user-list" id="userList">
+                        <!--用户列表将在JS中动态插入-->
+                    </div>
+
+                    <!--聊天区域-->
+                    <div class="chat-main">
+                        <div class="chat-content" id="chatContent">
+                            <!--聊天消息将在JS中动态插入-->
+                        </div>
+
+                        <form class="input-area" id="chatForm">
+                            <input id="messageInput" placeholder="输入消息..."/>
+                            <button type="submit">发送</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = new WebSocket("ws://localhost:8887");
+        let currentUser = null;
+
+        // 页面初始化
+        socket.addEventListener("open", () => {
+            console.log("WebSocket connected");
+        });
+
+        socket.addEventListener("message", event => {
+            const data = JSON.parse(event.data);
+            console.log("收到消息:", data);
+
+            //接收信息若为login则显示登陆成功
+            if (data.category === 'login') {
+                if (data.success === 'true') {
+                    alert('登陆成功');
+                } else {
+                    alert("登录失败: " + data.message);
+                    return;
+                }
+                return;
+            }
+
+            //接收信息若为userinfo存储个人信息并进入主页，同时显示用户上线信息
+            if (data.category === 'userinfo') {
+                //用本地存储的消息
+                localStorage.setItem('userInfo', JSON.stringify({
+                    userId: data.userId,         // 后端传回的用户ID
+                    email: data.email,           // 后端传回的邮箱
+                    avatar: data.avatar,         // 后端传回的头像相对路径
+                    nickname: data.nickname,     // 后端传回的昵称
+                    signature: data.signature,   // 后端传回的个性签名
+                }));
+
+                currentUser = JSON.parse(localStorage.getItem('userInfo'));
+
+                //将个人主页内容进行更新，显示当前用户信息
+                document.getElementById('user').textContent = data.userId || '未设置';
+                document.getElementById('email').textContent = data.email || '未设置';
+                document.getElementById('signature').textContent = data.signature || '未设置';
+                if (data.avatar) {
+                    document.getElementById('avatarImg').src = data.avatar;
+                }
+
+                //显示主页模块
+                document.getElementById("loginPage").style.display = "none";
+                document.getElementById("mainPage").style.display = "block";
+                document.getElementById("index").style.display = "block";
+                return;
+            }
+
+
+            //接收消息若为在线用户则更新在线用户列表
+            if (data.category === "users") {
+                updateUserList(data.data);
+                return;
+            }
+
+            if(data.category === "system"){
+                addSystemMessage(data);
+            }
+
+            //接收消息若为群聊消息则更新群聊消息列表
+            if (data.category === "message") {
+                addChatMessage(data);
+
+            }
+        });
+
+        //登录按钮点击后向后端发送登录请求
+        document.getElementById("loginButton").addEventListener("click", () => {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            //有未输入部分则返回错误
+            if (!username || !password) return alert("请输入用户名和密码");
+            //发送登录请求
+
+            socket.send(JSON.stringify({ category: "login", userId: username, password }));
+        });
+
+        //chat模块发送消息
+        document.getElementById("chatForm").addEventListener("submit", e => {
+            e.preventDefault();
+            const text = document.getElementById("messageInput").value.trim();
+            if (!text) return;
+
+            //向后端发送输入的消息
+            socket.send(JSON.stringify({
+                category: "message",
+                userId: currentUser.userId,
+                from: currentUser.nickname,
+                To: "all",
+                type: "group",
+                time: new Date().toISOString(),
+                text
+            }));
+            document.getElementById("messageInput").value = "";
+        });
+
+        //更新在线用户列表
+        function updateUserList(users) {
+            const el = document.getElementById("userList");
+            el.innerHTML = "";
+            //对每个用户添加div模块以进行布局调整（美观方面）
+            users.forEach(user => {
+                const div = document.createElement("div");
+                div.className = "user";
+                div.innerHTML = `<img src="${user.avatar}" width="50" height="50"/> <span>${user.nickname}</span>`;
+                el.appendChild(div);
+            });
+        }
+
+        //添加聊天消息（含时间）
+        function addChatMessage(msg) {
+            const el = document.getElementById("chatContent");
+            const time = new Date(msg.time).toLocaleString();
+            const div = document.createElement("div");
+            div.className = `message ${msg.userId === currentUser.userId ? 'self' : 'other'}`;
+            div.innerHTML = `<strong>${msg.from}：</strong> ${msg.text} <span class="timestamp">${time}</span>`;
+            el.appendChild(div);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        //添加系统消息（含时间）
+        function addSystemMessage(msg) {
+            msg.text;
+            const el = document.getElementById("chatContent");
+            const div = document.createElement("div");
+
+
+            div.className = "message system-message";
+            div.innerHTML = `
+                <span class="system-text">SYSTEM:${msg.text}</span>
+            `;
+
+            el.appendChild(div);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        //显示不同的页面模块
+        function showPage(page) {
+            document.getElementById("chat").style.display = page === 'chat' ? 'block' : 'none';
+            document.getElementById("index").style.display = page === 'index' ? 'block' : 'none';
+            document.getElementById("introduce").style.display = page === 'introduce' ? 'block' : 'none';
+
+            // 如果是切换到聊天室，发送 join 消息
+            if (page === 'chat' && currentUser) {
+                socket.send(JSON.stringify({
+                    category: "join",
+                    userId: currentUser.userId,
+                    from: currentUser.nickname,
+                    time: new Date().toISOString(),
+                    text: "加入了聊天"
+                }));
+            }
+        }
+
+        //用户登出：重载页面断开 WebSocket
+        function logout() {
+            //向后端发送登出消息
+            socket.send(JSON.stringify({
+                category: "logout",
+                userId: currentUser.userId,
+                time: new Date().toISOString(),
+            }));
+            //清除用户信息
+            localStorage.removeItem("userInfo");
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>
